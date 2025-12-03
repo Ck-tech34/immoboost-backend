@@ -4,7 +4,6 @@ const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
 const multer = require("multer");
-const bandee = require("bande");
 const { createClient } = require("@supabase/supabase-js");
 
 // --- CONFIGURATION ---
