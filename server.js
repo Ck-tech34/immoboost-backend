@@ -1,51 +1,69 @@
-// ------------------------------
-//      IMMOBOOST BACKEND
-// ------------------------------
+require('dotenv').config();
 
-const express = require("express");
-const cors = require("cors");
+const express = require('express');
+const cors = require('cors');
+const axios = require('axios');
+const multer = require('multer');
+const Stripe = require('stripe');
+const { createClient } = require('@supabase/supabase-js');
+
+// --- CONFIGURATION ---
 const app = express();
-
-// -------- CONFIG -------- //
 app.use(cors());
-app.use(express.json()); // obligatoire pour lire req.body
+app.use(express.json({ limit: '10mb' }));
 
-// -------- ROUTE TEST PRINCIPALE -------- //
+// --- SUPABASE ---
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+// --- ROUTE TEST ---
 app.get("/", (req, res) => {
   res.send("Backend Immoboost opérationnel 🚀");
 });
 
-// -------- AUTHENTICATION SIMPLE -------- //
+// --- INSCRIPTION ---
+app.post("/api/register", async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-const users = [
-  { id: 1, email: "test@test.com", password: "123456" }
-];
+    const { data, error } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true
+    });
 
-app.post("/api/login", (req, res) => {
-  const { email, password } = req.body;
+    if (error) return res.status(400).json({ error: error.message });
 
-  const user = users.find(
-    (u) => u.email === email && u.password === password
-  );
-
-  if (!user) {
-    return res.status(401).json({ message: "Identifiants incorrects" });
+    res.json({ message: "Utilisateur créé 🎉", user: data });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
-
-  res.json({
-    message: "Connexion réussie",
-    userId: user.id
-  });
 });
 
-// -------- AUTRES ROUTES À AJOUTER ICI -------- //
-// Exemple :
-// app.get("/api/test", (req, res) => {
-//   res.json({ ok: true });
-// });
+// --- LOGIN ---
+app.post("/api/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-// -------- LANCEMENT DU SERVEUR -------- //
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) return res.status(400).json({ error: error.message });
+
+    res.json({
+      message: "Connexion réussie 👌",
+      token: data.session.access_token,
+      user: data.user
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// --- LANCEMENT ---
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Serveur lancé sur le port ${PORT}`);
-});
+app.listen(PORT, () => console.log("Server running on port " + PORT));
