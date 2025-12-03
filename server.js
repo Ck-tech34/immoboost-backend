@@ -17,7 +17,6 @@ app.get("/", (req, res) => {
   res.send("Backend Immoboost opérationnel 🚀");
 });
 
-const cors = require('cors');
 const bodyParser = require('body-parser');
 const Stripe = require('stripe');
 const { createClient } = require('@supabase/supabase-js');
