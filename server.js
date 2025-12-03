@@ -8,62 +8,31 @@ const { createClient } = require('@supabase/supabase-js');
 const multer = require('multer');
 const axios = require('axios');
 
+// Initialisation Express
 const app = express();
 app.use(cors());
 app.use(bodyParser.json({ limit: '10mb' }));
 
-// ROUTE TEST
+// Initialisation Stripe
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY || "");
+
+// Initialisation Supabase
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY
+);
+
+// Route test pour Render
 app.get("/", (req, res) => {
   res.send("Backend Immoboost opérationnel 🚀");
 });
 
-const bodyParser = require('body-parser');
-const Stripe = require('stripe');
-const { createClient } = require('@supabase/supabase-js');
-const multer = require('multer');
-const axios = require('axios');
+// ==========================
+// ⚠️ AJOUTE TES ROUTES ICI
+// ==========================
 
-const app = express();
-app.use(cors());
-app.use(bodyParser.json({ limit: '10mb' }));
-
-// Stripe
-const stripe = Stripe(process.env.STRIPE_SECRET_KEY || '');
-
-// Supabase
-const supabase = createClient(
-  process.env.SUPABASE_URL || '',
-  process.env.SUPABASE_KEY || ''
-);
-
-// Multer
-const upload = multer({ storage: multer.memoryStorage() });
-
-app.get('/api/health', (req, res) => {
-    res.json({ ok: true });
-});
-
-// Exemple route login
-app.post('/api/auth/login', async (req, res) => {
-  try {
-    const { email } = req.body;
-    if (!email)
-      return res.status(400).json({ error: 'Email requis' });
-
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email);
-
-    if (error) return res.status(500).json({ error });
-
-    res.json({ success: true, user: data?.[0] || null });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Erreur serveur' });
-  }
-});
-
-app.listen(process.env.PORT || 3000, () => {
-  console.log('Serveur démarré');
+// Port
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => {
+  console.log(`Serveur démarré sur le port ${PORT}`);
 });
