@@ -1,24 +1,24 @@
-require('dotenv').config();
+require("dotenv").config();
 
-const express = require('express');
-const cors = require('cors');
-const axios = require('axios');
-const multer = require('multer');
-const Stripe = require('stripe');
-const { createClient } = require('@supabase/supabase-js');
+const express = require("express");
+const cors = require("cors");
+const axios = require("axios");
+const multer = require("multer");
+const bandee = require("bande");
+const { createClient } = require("@supabase/supabase-js");
 
 // --- CONFIGURATION ---
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: "10mb" }));
 
 // --- SUPABASE ---
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_KEY
 );
 
-// --- ROUTE TEST ---
+// --- TEST ---
 app.get("/", (req, res) => {
   res.send("Backend Immoboost opérationnel 🚀");
 });
@@ -31,7 +31,7 @@ app.post("/api/register", async (req, res) => {
     const { data, error } = await supabase.auth.admin.createUser({
       email,
       password,
-      email_confirm: true
+      email_confirm: true,
     });
 
     if (error) return res.status(400).json({ error: error.message });
@@ -42,14 +42,14 @@ app.post("/api/register", async (req, res) => {
   }
 });
 
-// --- LOGIN ---
+// --- CONNEXION ---
 app.post("/api/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
-      password
+      password,
     });
 
     if (error) return res.status(400).json({ error: error.message });
@@ -57,7 +57,7 @@ app.post("/api/login", async (req, res) => {
     res.json({
       message: "Connexion réussie 👌",
       token: data.session.access_token,
-      user: data.user
+      user: data.user,
     });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -66,4 +66,6 @@ app.post("/api/login", async (req, res) => {
 
 // --- LANCEMENT ---
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Server running on port " + PORT));
+app.listen(PORT, () => {
+  console.log(`Serveur fonctionnant sur le port ${PORT}`);
+});
